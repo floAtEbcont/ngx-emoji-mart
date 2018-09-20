@@ -1,10 +1,13 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   EventEmitter,
   Input,
   OnChanges,
   Output,
+  ViewChild,
 } from '@angular/core';
 
 import { EmojiData } from './data/data.interfaces';
@@ -43,10 +46,8 @@ export interface EmojiEvent {
   selector: 'ngx-emoji',
   template: `
   <span *ngIf="isVisible"
+    #emojiSpan
     (click)="handleClick($event)"
-    (touchend)="handleClick($event, true)"
-    (mouseenter)="handleOver($event)"
-    (mouseleave)="handleLeave($event)"
     [title]="title"
     class="emoji-mart-emoji"
     [class.emoji-mart-emoji-native]="isNative"
@@ -60,7 +61,7 @@ export interface EmojiEvent {
   changeDetection: ChangeDetectionStrategy.OnPush,
   preserveWhitespaces: false,
 })
-export class EmojiComponent implements OnChanges, Emoji {
+export class EmojiComponent implements OnChanges, AfterViewInit, Emoji {
   @Input() skin: Emoji['skin'] = 1;
   @Input() set: Emoji['set'] = 'apple';
   @Input() sheetSize: Emoji['sheetSize'] = 64;
@@ -72,7 +73,7 @@ export class EmojiComponent implements OnChanges, Emoji {
   @Input() emoji: Emoji['emoji'] = '';
   @Input() fallback?: Emoji['fallback'];
   @Input() hideObsolete = false;
-  @Input() emitOnTouch = false;
+  @Input() emitEmojiMouseOverEvents = true;
   @Input() SHEET_COLUMNS = 52;
   @Output() emojiOver: Emoji['emojiOver'] = new EventEmitter();
   @Output() emojiLeave: Emoji['emojiLeave'] = new EventEmitter();
@@ -84,8 +85,16 @@ export class EmojiComponent implements OnChanges, Emoji {
   isVisible = true;
   // TODO: replace 4.0.3 w/ dynamic get verison from emoji-datasource in package.json
   @Input() backgroundImageFn: Emoji['backgroundImageFn'] = DEFAULT_BACKGROUNDFN;
+  @ViewChild('emojiSpan') emojiSpan!: ElementRef;
 
   constructor(private emojiService: EmojiService) {}
+
+  ngAfterViewInit() {
+    if (this.emojiSpan! && this.emojiSpan!.nativeElement && this.emitEmojiMouseOverEvents) {
+      this.emojiSpan!.nativeElement.addEventListener('mouseenter', (e: MouseEvent) => this.handleOver(e));
+      this.emojiSpan!.nativeElement.addEventListener('mouseleave', (e: MouseEvent) => this.handleLeave(e));
+    }
+  }
 
   ngOnChanges() {
     if (!this.emoji) {
@@ -159,9 +168,7 @@ export class EmojiComponent implements OnChanges, Emoji {
 
   handleClick($event: Event, touch = false) {
     const emoji = this.getSanitizedData();
-    if (!touch || this.emitOnTouch) {
-      this.emojiClick.emit({ emoji, $event });
-    }
+    this.emojiClick.emit({ emoji, $event });
   }
 
   handleOver($event: Event) {

@@ -40,7 +40,7 @@ import { EmojiFrequentlyService } from './emoji-frequently.service';
         [tooltip]="emojiTooltip"
         [backgroundImageFn]="emojiBackgroundImageFn"
         [hideObsolete]="hideObsolete"
-        [emitOnTouch]="emitOnTouch"
+        [emitEmojiMouseOverEvents]="emitEmojiMouseOverEvents"
         (emojiOver)="emojiOver.emit($event)"
         (emojiLeave)="emojiLeave.emit($event)"
         (emojiClick)="emojiClick.emit($event)"
@@ -83,7 +83,7 @@ export class CategoryComponent implements OnInit {
   @Input() i18n: any;
   @Input() id: any;
   @Input() hideObsolete = true;
-  @Input() emitOnTouch = false;
+  @Input() emitEmojiMouseOverEvents = true;
   @Input() notFoundEmoji?: string;
   @Input() emojiIsNative?: Emoji['isNative'];
   @Input() emojiSkin?: Emoji['skin'];
